@@ -7,6 +7,8 @@ import com.example.backend.service.FirebaseAuthService;
 import com.example.backend.service.FirestoreService;
 import com.google.firebase.auth.FirebaseToken;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+
 
 import java.util.Map;
 
@@ -57,6 +59,25 @@ public class EnergyController {
     private double getDouble(Map<String, Object> map, String key) {
         Object value = map.get(key);
         return value == null ? 0.0 : ((Number) value).doubleValue();
+    }
+
+    // 🆕 ADD THIS: Update buy bid price
+    @PostMapping("/price/buy")
+    public ResponseEntity<?> updateBuyBidPrice(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody Map<String, Double> body
+    ) throws Exception {
+
+        FirebaseToken token =
+                authService.verifyToken(authHeader.replace("Bearer ", ""));
+
+        firestoreService.updateUserField(
+                token.getUid(),
+                "buyBidPrice",
+                body.get("buyBidPrice")
+        );
+
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/dashboard")

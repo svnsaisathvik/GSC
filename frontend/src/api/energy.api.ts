@@ -23,3 +23,17 @@ export const updateSellingPrice = (price: number) => {
     }
   );
 };
+
+  export const updateBuyBidPrice = (price: number) => {
+  const token = localStorage.getItem("token");
+
+  return api.post(
+    "/api/energy/price/buy",
+    { buyBidPrice: price },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+};

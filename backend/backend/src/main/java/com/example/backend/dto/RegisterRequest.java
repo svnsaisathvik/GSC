@@ -11,6 +11,8 @@ public class RegisterRequest {
     private String phone;
     private String houseName;
     private Location location;
+    private String meterNumber;
+
 
     // -------- GETTERS & SETTERS --------
 
@@ -37,6 +39,15 @@ public class RegisterRequest {
     public void setName(String name) {
         this.name = name;
     }
+    // 🆕 METER NUMBER
+    public String getMeterNumber() {
+        return meterNumber;
+    }
+
+    public void setMeterNumber(String meterNumber) {
+        this.meterNumber = meterNumber;
+    }
+
 
     public String getRole() {
         return role;

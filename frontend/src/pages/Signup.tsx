@@ -30,6 +30,10 @@ const Signup = () => {
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [phone, setPhone] = useState("");
+  const [meterNumber, setMeterNumber] = useState("");
+  const [role, setRole] = useState<"PROSUMER" | "PRODUCER" | "CONSUMER">("PROSUMER");
+
+
 
 
   // 🔁 AUTO-REDIRECT IF ALREADY LOGGED IN
@@ -103,8 +107,9 @@ const Signup = () => {
         email,
         password,
         name,
-        role: "PROSUMER",
+        role,
         phone,
+        meterNumber,
         houseName,
         location: {
           latitude: parseFloat(latitude),
@@ -151,6 +156,57 @@ const Signup = () => {
           error={errors.name} 
         />
 
+        {/* Role Selection */}
+        {/* Role Selection */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-white">
+            Select Role
+          </label>
+
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              {
+                value: "PROSUMER",
+                title: "Prosumer",
+                desc: "Buy & Sell",
+              },
+              {
+                value: "PRODUCER",
+                title: "Producer",
+                desc: "Sell only",
+              },
+              {
+                value: "CONSUMER",
+                title: "Consumer",
+                desc: "Buy only",
+              },
+            ].map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => setRole(item.value as any)}
+                className={`rounded-xl border px-4 py-3 text-left transition-all
+                  ${
+                    role === item.value
+                      ? "border-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-400"
+                      : "border-white/10 bg-white/5 hover:bg-white/10"
+                  }`}
+              >
+                <p className="text-sm font-semibold text-white">
+                  {item.title}
+                </p>
+                <p className="text-xs text-white/50">
+                  {item.desc}
+                </p>
+              </button>
+            ))}
+          </div>
+
+          <p className="text-xs text-white/40">
+            Choose how you want to participate in the energy network
+          </p>
+        </div>
+
         <AuthInput
           label="House Name"
           type="text"
@@ -167,6 +223,13 @@ const Signup = () => {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           error={errors.phone}
+        />
+
+        <AuthInput
+          label="Meter Number"
+          placeholder="Enter your electricity meter number"
+          value={meterNumber}
+          onChange={(e) => setMeterNumber(e.target.value)}
         />
 
         <AuthInput

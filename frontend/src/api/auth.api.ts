@@ -8,6 +8,7 @@ export const signup = (data: {
 
   // 🔽 NEW FIELDS ADDED FOR PROSUMER ONBOARDING
   phone: string;
+  meterNumber: string;
   houseName: string;
   location: {
     latitude: number;

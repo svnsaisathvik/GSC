@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { getDashboard, updateSellingPrice } from "@/api/energy.api";
+import { getDashboard, updateSellingPrice, updateBuyBidPrice } from "@/api/energy.api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import TopBar from "@/components/layout/TopBar";
+import { getUserProfile } from "@/api/user.api";
 
 
 
@@ -20,16 +21,17 @@ import {
 
 
 const Dashboard = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState("");
+  // const [name, setName] = useState("");
+  // const [email, setEmail] = useState("");
+  // const [role, setRole] = useState("");
+  // const [sellingPrice, setSellingPrice] = useState([6.5]);
+  // const [phone, setPhone] = useState("");
+  // const [houseName, setHouseName] = useState("");
+  // const [latitude, setLatitude] = useState<number | null>(null);
+  // const [longitude, setLongitude] = useState<number | null>(null);
+  // const [user, setUser] = useState<any>(null);
+
   const [sellingPrice, setSellingPrice] = useState([6.5]);
-  const [phone, setPhone] = useState("");
-  const [houseName, setHouseName] = useState("");
-  const [latitude, setLatitude] = useState<number | null>(null);
-  const [longitude, setLongitude] = useState<number | null>(null);
-
-
   const [energySold, setEnergySold] = useState(0);
   const [energyConsumed, setEnergyConsumed] = useState(0);
   const [earnings, setEarnings] = useState(0);
@@ -37,6 +39,29 @@ const Dashboard = () => {
   const [liveRate, setLiveRate] = useState(0);
   const isSelling = energySold > energyConsumed;
   const isConsuming = energyConsumed > energySold;
+  const [user, setUser] = useState<any>(null);
+  const role = user?.role;
+
+  const isProsumer = role === "PROSUMER";
+  const isProducer = role === "PRODUCER";
+  const isConsumer = role === "CONSUMER";
+
+  const [meterNumber, setMeterNumber] = useState("");
+  const [buyBidPrice, setBuyBidPrice] = useState([6.0]);
+
+
+
+
+  useEffect(() => {
+    getUserProfile()
+      .then((res) => {
+        console.log("USER PROFILE:", res.data); // must print full JSON
+        setUser(res.data);
+      })
+      .catch((err) => {
+        console.error("User fetch failed", err);
+      });
+  }, []);
 
 
   useEffect(() => {
@@ -44,25 +69,62 @@ const Dashboard = () => {
       .then((res) => {
         const data = res.data;
 
-        setName(data.name);
-        setEmail(data.email);
-        setRole(data.role);
+        // setName(data.name);
+        // setEmail(data.email);
+        // setRole(data.role);
 
-        // 🆕 NEW FIELDS
-        setPhone(data.phone ?? "");
-        setHouseName(data.houseName ?? "");
-        setLatitude(data.location?.latitude ?? null);
-        setLongitude(data.location?.longitude ?? null);
+        // // 🆕 NEW FIELDS
+        // setPhone(data.phone ?? "");
+        // setHouseName(data.houseName ?? "");
+        // setLatitude(data.location?.latitude ?? null);
+        // setLongitude(data.location?.longitude ?? null);
 
         setEnergySold(data.energySold);
         setEnergyConsumed(data.energyConsumed);
-        setEarnings(data.earnings);
-        setGridSavings(data.gridSavings);
+        setEarnings(data.totalEarnings ?? 0);
+        setGridSavings(data.gridSavings ?? 0);
         setLiveRate(data.liveRate ?? 0);
-        setSellingPrice([data.sellingPrice]);
+        // setSellingPrice([data.sellingPrice]);
+        setSellingPrice(data.sellingPrice ? [data.sellingPrice] : [6.5]);
+        setBuyBidPrice(
+          typeof data.buyBidPrice === "number" ? [data.buyBidPrice] : [6.0]
+        );
+
       })
       .catch(console.error);
   }, []);
+  // useEffect(() => {
+  //   getUserProfile().then(res => {
+  //     console.log("USER DATA", res.data);
+  //     setUser(res.data);
+  //   });
+  // }, []);
+
+  // ✅ Always extract a safe number from Slider array
+  const safeSellingPrice =
+    typeof sellingPrice[0] === "number" ? sellingPrice[0] : 0;
+
+  // ✅ Defensive numbers to prevent runtime crashes
+  const safeEnergySold =
+    typeof energySold === "number" ? energySold : 0;
+
+  const safeEnergyConsumed =
+    typeof energyConsumed === "number" ? energyConsumed : 0;
+
+  const safeEarnings =
+    typeof earnings === "number" ? earnings : 0;
+
+  const safeGridSavings =
+    typeof gridSavings === "number" ? gridSavings : 0;
+
+  const safeBuyBidPrice =
+  typeof buyBidPrice[0] === "number" ? buyBidPrice[0] : 0;
+
+  
+
+
+  // const safeSellingPrice =
+  // typeof sellingPrice[0] === "number" ? sellingPrice[0] : 0;
 
 
 
@@ -73,6 +135,15 @@ const Dashboard = () => {
       console.error("Failed to update selling price", err);
     }
   };
+
+  const handleSaveBuyBidPrice = async () => {
+    try {
+      await updateBuyBidPrice(buyBidPrice[0]);
+    } catch (err) {
+      console.error("Failed to update buy bid price", err);
+    }
+  };
+
 
 
 
@@ -92,9 +163,17 @@ const Dashboard = () => {
                     <User className="h-8 w-8 text-white/70" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-white">{name}</h2>
-                    <p className="text-sm text-white/50">{houseName}</p>
-                    <p className="text-sm text-white/60">{role}</p>
+                    <h2 className="text-xl font-semibold text-white">
+                      {user?.name ?? "Not provided"}
+                    </h2>
+
+                    <p className="text-sm text-white/50">
+                      {user?.houseName ?? "Not provided"}
+                    </p>
+
+                    <p className="text-sm text-white/60">
+                      {user?.role ?? "--"}
+                    </p>
                   </div>
                 </div>
 
@@ -104,7 +183,7 @@ const Dashboard = () => {
                     <div>
                       <p className="text-xs text-white/40 uppercase tracking-wider">Phone</p>
                       <p className="text-white font-mono">
-                        {phone ? `+91 ${phone}` : "Not provided"}
+                        {user?.phone ? `+91 ${user.phone}` : "Not provided"}
                       </p>
                     </div>
                   </div>
@@ -117,13 +196,13 @@ const Dashboard = () => {
                         <div>
                           <span className="text-xs text-white/40">LAT</span>
                           <p className="text-white font-mono">
-                            {latitude !== null ? `${latitude}°` : "--"}
+                            {user?.latitude ?? "--"}°
                           </p>
                         </div>
                         <div>
                           <span className="text-xs text-white/40">LNG</span>
                           <p className="text-white font-mono">
-                            {longitude !== null ? `${longitude}°` : "--"}
+                            {user?.longitude ?? "--"}°
                           </p>
                         </div>
                       </div>
@@ -131,12 +210,24 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                <div className="mt-6 flex items-center gap-2 rounded-lg bg-white/5 p-3">
-                  <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <div>
-                    <p className="text-sm font-medium text-white">Smart Meter Connected</p>
-                    <p className="text-xs text-white/50">Actively participating in the P2P energy network</p>
+                <div className="mt-6 rounded-lg bg-white/5 p-3 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <p className="text-sm font-medium text-white">
+                      Smart Meter Connected
+                    </p>
                   </div>
+
+                  <p className="text-xs text-white/50">
+                    Actively participating in the P2P energy network
+                  </p>
+
+                  {/* 🆕 Meter Number */}
+                  {user?.meterNumber && (
+                    <p className="text-xs text-white/70 font-mono">
+                      Meter ID: <span className="text-white">{user.meterNumber}</span>
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -171,7 +262,8 @@ const Dashboard = () => {
                     </p>
 
                     <p className="text-sm text-white/50">
-                      @ ₹{sellingPrice[0].toFixed(2)}/kWh
+                      @ ₹{safeSellingPrice.toFixed(2)}/kWh
+                      
                     </p>
                   </div>
                 </div>
@@ -179,7 +271,7 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between rounded-lg bg-white/5 p-3">
                   <span className="text-sm text-white/60">Live Rate</span>
                   <span className="text-lg font-mono font-semibold text-white">
-                    {Math.abs(energySold - energyConsumed).toFixed(2)}
+                    {Math.abs(safeEnergySold - safeEnergyConsumed).toFixed(2)}
                     <span className="text-sm text-white/50"> kWh</span>
                   </span>
                 </div>
@@ -204,7 +296,7 @@ const Dashboard = () => {
                   </div>
                   <p className="text-sm text-white/50 mb-1">Energy Sold</p>
                   <p className="text-3xl font-mono font-bold text-white">
-                    {energySold.toFixed(1)} <span className="text-base font-normal text-white/50">kWh</span>
+                    {safeEnergySold.toFixed(1)} <span className="text-base font-normal text-white/50">kWh</span>
                   </p>
                 </CardContent>
               </Card>
@@ -222,7 +314,7 @@ const Dashboard = () => {
                   </div>
                   <p className="text-sm text-white/50 mb-1">Energy Consumed</p>
                   <p className="text-3xl font-mono font-bold text-white">
-                    {energyConsumed.toFixed(1)} <span className="text-base font-normal text-white/50">kWh</span>
+                    {safeEnergyConsumed.toFixed(1)} <span className="text-base font-normal text-white/50">kWh</span>
                   </p>
                 </CardContent>
               </Card>
@@ -240,7 +332,7 @@ const Dashboard = () => {
                   </div>
                   <p className="text-sm text-white/50 mb-1">Total Earnings</p>
                   <p className="text-3xl font-mono font-bold text-white">
-                    ₹{earnings.toFixed(2)} <span className="text-base font-normal text-white/50">this month</span>
+                    ₹{safeEarnings.toFixed(2)} <span className="text-base font-normal text-white/50">this month</span>
                   </p>
                 </CardContent>
               </Card>
@@ -258,70 +350,112 @@ const Dashboard = () => {
                   </div>
                   <p className="text-sm text-white/50 mb-1">Grid Savings</p>
                   <p className="text-3xl font-mono font-bold text-white">
-                    ₹{gridSavings.toFixed(1)} <span className="text-base font-normal text-white/50">vs grid prices</span>
+                    ₹{safeGridSavings.toFixed(1)} <span className="text-base font-normal text-white/50">vs grid prices</span>
                   </p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Selling Price Card */}
-            <Card className="border-white/10 bg-white/5 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-500/20">
-                    <Zap className="h-6 w-6 text-yellow-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">Selling Price</h3>
-                    <p className="text-sm text-white/50">Set your electricity rate</p>
-                  </div>
-                </div>
+            {/* Pricing Section */}
+            <div className="grid gap-6 md:grid-cols-2">
 
-                {/* Price Input */}
-                <div className="mb-6 flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 p-4">
-                  <span className="text-2xl text-white/40">₹</span>
-                  <span className="text-3xl font-mono font-bold text-white">{sellingPrice[0].toFixed(2)}</span>
-                  <span className="text-white/50">/kWh</span>
-                </div>
+              {/* 🔶 Selling Price (PROSUMER + PRODUCER) */}
+              {(user?.role === "PROSUMER" || user?.role === "PRODUCER") && (
+                <Card className="border-white/10 bg-white/5 backdrop-blur-sm">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-500/20">
+                        <Zap className="h-6 w-6 text-yellow-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">Selling Price</h3>
+                        <p className="text-sm text-white/50">
+                          Price you sell energy at
+                        </p>
+                      </div>
+                    </div>
 
-                {/* Price Slider */}
-                <div className="mb-6">
-                  <Slider
-                    value={sellingPrice}
-                    onValueChange={setSellingPrice}
-                    max={20}
-                    min={0}
-                    step={0.1}
-                    className="w-full"
-                  />
-                  <div className="mt-2 flex justify-between text-sm text-white/40">
-                    <span>₹0</span>
-                    <span>₹10</span>
-                    <span>₹20</span>
-                  </div>
-                </div>
+                    {/* Price Display */}
+                    <div className="mb-6 flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 p-4">
+                      <span className="text-2xl text-white/40">₹</span>
+                      <span className="text-3xl font-mono font-bold text-white">
+                        {safeSellingPrice.toFixed(2)}
+                      </span>
+                      <span className="text-white/50">/kWh</span>
+                    </div>
 
-                {/* Grid Price Comparison */}
-                <div className="mb-6 flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-4">
-                  <div>
-                    <p className="text-sm text-white/50">Grid Price</p>
-                    <p className="text-lg font-mono font-semibold text-white">₹8.50/kWh</p>
-                  </div>
-                  <span className="rounded-full border border-emerald-400/50 bg-emerald-500/20 px-3 py-1 text-sm font-medium text-emerald-400">
-                    Competitive
-                  </span>
-                </div>
+                    {/* Slider */}
+                    <Slider
+                      value={sellingPrice}
+                      onValueChange={setSellingPrice}
+                      max={20}
+                      min={0}
+                      step={0.1}
+                      className="mb-4"
+                    />
 
-                {/* Save Button */}
-                <Button
-                  onClick={handleSavePrice}
-                  className="w-full gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-6"
-                >
-                  <Check className="h-5 w-5" />
-                  Save Price
-                </Button>
-              </CardContent>
-            </Card>
+                    {/* Save */}
+                    <Button
+                      onClick={handleSavePrice}
+                      className="w-full bg-emerald-500 hover:bg-emerald-600"
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      Save Selling Price
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* 🔷 Buy Bid Price (PROSUMER + CONSUMER) */}
+              {(user?.role === "PROSUMER" || user?.role === "CONSUMER") && (
+                <Card className="border-white/10 bg-white/5 backdrop-blur-sm">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/20">
+                        <TrendingDown className="h-6 w-6 text-blue-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">
+                          Buy Bid Price
+                        </h3>
+                        <p className="text-sm text-white/50">
+                          Max price you are willing to pay
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Price Display */}
+                    <div className="mb-6 flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 p-4">
+                      <span className="text-2xl text-white/40">₹</span>
+                      <span className="text-3xl font-mono font-bold text-white">
+                        {safeBuyBidPrice.toFixed(2)}
+                      </span>
+                      <span className="text-white/50">/kWh</span>
+                    </div>
+
+                    {/* Slider */}
+                    <Slider
+                      value={buyBidPrice}
+                      onValueChange={setBuyBidPrice}
+                      max={20}
+                      min={0}
+                      step={0.1}
+                      className="mb-4"
+                    />
+
+                    {/* Save */}
+                    <Button
+                      onClick={handleSaveBuyBidPrice}
+                      className="w-full bg-blue-500 hover:bg-blue-600"
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      Save Buy Bid Price
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+            </div>
           </div>
         </div>
         </div>

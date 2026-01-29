@@ -50,6 +50,7 @@ public class AuthController {
             userData.put("name", request.getName());
             userData.put("role", request.getRole());
             userData.put("phone", request.getPhone());
+            userData.put("meterNumber", request.getMeterNumber());
             userData.put("houseName", request.getHouseName());
 
             Map<String, Object> location = new java.util.HashMap<>();
@@ -60,6 +61,7 @@ public class AuthController {
 
             // 🔽 DEFAULT ENERGY VALUES
             userData.put("sellingPrice", 6.5);
+            userData.put("buyBidPrice", 6.0);
             userData.put("energySold", 0);
             userData.put("energyConsumed", 0);
             userData.put("earnings", 0);

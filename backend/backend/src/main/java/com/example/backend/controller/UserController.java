@@ -23,22 +23,50 @@ public class UserController {
         this.firestoreService = firestoreService;
     }
 
-    @GetMapping("/profile")
-    public UserProfileDto getProfile(
-            @RequestHeader("Authorization") String authHeader
-    ) throws Exception {
+    @GetMapping(value = "/profile", produces = "application/json")
+public UserProfileDto getProfile(
+        @RequestHeader("Authorization") String authHeader
+) throws Exception {
 
-        FirebaseToken token = authService.verifyToken(authHeader.replace("Bearer ", ""));
-        Map<String, Object> user = firestoreService.getUser(token.getUid());
+        FirebaseToken token =
+                authService.verifyToken(authHeader.replace("Bearer ", ""));
+
+        Map<String, Object> user =
+                firestoreService.getUser(token.getUid());
+
+        Map<String, Object> location =
+                (Map<String, Object>) user.get("location");
+
+        Double latitude = null;
+        Double longitude = null;
+
+        if (location != null) {
+                Object latObj = location.get("latitude");
+                Object lngObj = location.get("longitude");
+
+                if (latObj instanceof Number) {
+                latitude = ((Number) latObj).doubleValue();
+                }
+                if (lngObj instanceof Number) {
+                longitude = ((Number) lngObj).doubleValue();
+                }
+        }
 
         return new UserProfileDto(
                 (String) user.get("houseName"),
                 (String) user.get("name"),
                 (String) user.get("phone"),
-                getDouble(user, "latitude"),
-                getDouble(user, "longitude")
+                (String) user.get("role"),
+                (String) user.get("meterNumber"), // 🆕 ADD THIS
+                latitude,
+                longitude,
+                user.get("buyBidPrice") instanceof Number
+                        ? ((Number) user.get("buyBidPrice")).doubleValue()
+                        : 0.0
         );
-    }
+
+}
+
 
     @GetMapping("/dashboard/stats")
     public DashboardStatsDto getDashboardStats(

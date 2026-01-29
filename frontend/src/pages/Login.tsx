@@ -61,7 +61,8 @@ const Login = () => {
       );
 
       // 🎟️ Get ID token for backend
-      const token = await userCred.user.getIdToken();
+      const token = await userCred.user.getIdToken(true); // 👈 FORCE REFRESH
+
 
       // 💾 Store auth info
       localStorage.setItem("token", token);
