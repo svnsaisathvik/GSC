@@ -348,9 +348,9 @@ const Dashboard = () => {
                       +28%
                     </span>
                   </div>
-                  <p className="text-sm text-white/50 mb-1">Grid Savings</p>
+                  <p className="text-sm text-white/50 mb-1">Profit from P2P</p>
                   <p className="text-3xl font-mono font-bold text-white">
-                    ₹{safeGridSavings.toFixed(1)} <span className="text-base font-normal text-white/50">vs grid prices</span>
+                    ₹{safeGridSavings.toFixed(1)} <span className="text-base font-normal text-white/50">Rupees</span>
                   </p>
                 </CardContent>
               </Card>
