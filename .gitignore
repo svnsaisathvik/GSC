@@ -1,0 +1,83 @@
+####################################
+# OS / Editor
+####################################
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+*.iml
+
+####################################
+# Logs
+####################################
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+####################################
+# Environment & Secrets
+####################################
+.env
+.env.*
+!.env.example
+
+####################################
+# ================================
+# Frontend (GSC/GSC - React)
+# ================================
+####################################
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/coverage/
+frontend/.next/
+frontend/out/
+frontend/.vite/
+frontend/.eslintcache
+
+####################################
+# ================================
+# Backend (frontend/backend - Spring Boot)
+# ================================
+####################################
+backend/backend/target/
+backend/backend/build/
+backend/backend/out/
+
+# Gradle
+backend/backend/.gradle/
+!backend/backend/gradle/wrapper/gradle-wrapper.jar
+
+# Maven wrapper
+backend/backend/.mvn/wrapper/maven-wrapper.jar
+
+####################################
+# Firebase / Google credentials
+####################################
+**/serviceAccountKey.json
+**/google-credentials.json
+**/*.pem
+**/*.key
+firebase-debug.log
+
+####################################
+# Spring Boot local configs
+####################################
+# Spring Boot local configs
+####################################
+backend/backend/target/
+backend/backend/application-local.yml
+backend/backend/application-local.properties
+backend/backend/application-dev.yml
+backend/backend/application-dev.properties
+
+####################################
+# Temp / cache
+####################################
+tmp/
+temp/
+*.tmp
