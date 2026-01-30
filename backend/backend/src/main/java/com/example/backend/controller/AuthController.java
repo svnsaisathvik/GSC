@@ -3,11 +3,13 @@ package com.example.backend.controller;
 import com.example.backend.dto.RegisterRequest;
 import com.example.backend.service.FirebaseAuthService;
 import com.example.backend.service.FirestoreService;
+import com.example.backend.domain.microgrid.lan.LANManager;
 import com.google.firebase.auth.FirebaseToken;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/auth")
@@ -16,26 +18,26 @@ public class AuthController {
 
     private final FirebaseAuthService firebaseAuthService;
     private final FirestoreService firestoreService;
+    private final LANManager lanManager;
 
     public AuthController(
             FirebaseAuthService firebaseAuthService,
-            FirestoreService firestoreService
+            FirestoreService firestoreService,
+            LANManager lanManager
     ) {
         this.firebaseAuthService = firebaseAuthService;
         this.firestoreService = firestoreService;
+        this.lanManager = lanManager;
     }
 
     /**
      * ✅ REGISTER / SIGNUP USER
-     * - Creates Firebase Auth user (email + password)
-     * - Gets UID from Firebase
-     * - Stores full user profile in Firestore using UID
      */
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
 
         try {
-            // 1️⃣ Create Firebase Auth user and get UID
+            // 1️⃣ Create Firebase Auth user
             String uid = firebaseAuthService.register(
                     request.getEmail(),
                     request.getPassword(),
@@ -44,7 +46,7 @@ public class AuthController {
             );
 
             // 2️⃣ Build Firestore user profile
-            Map<String, Object> userData = new java.util.HashMap<>();
+            Map<String, Object> userData = new HashMap<>();
 
             userData.put("email", request.getEmail());
             userData.put("name", request.getName());
@@ -53,10 +55,9 @@ public class AuthController {
             userData.put("meterNumber", request.getMeterNumber());
             userData.put("houseName", request.getHouseName());
 
-            Map<String, Object> location = new java.util.HashMap<>();
+            Map<String, Object> location = new HashMap<>();
             location.put("latitude", request.getLocation().getLatitude());
             location.put("longitude", request.getLocation().getLongitude());
-
             userData.put("location", location);
 
             // 🔽 DEFAULT ENERGY VALUES
@@ -66,58 +67,46 @@ public class AuthController {
             userData.put("energyConsumed", 0);
             userData.put("earnings", 0);
             userData.put("gridSavings", 0);
-
             userData.put("createdAt", System.currentTimeMillis());
 
             // 3️⃣ Save to Firestore
             firestoreService.createUser(uid, userData);
 
-            // 4️⃣ Return success
+            // 4️⃣ Register user in LAN brain
+            lanManager.addUser(uid);
+
             return ResponseEntity.ok(Map.of("uid", uid));
 
         } catch (IllegalStateException e) {
 
-            // 🔴 Email already exists
             if ("EMAIL_ALREADY_REGISTERED".equals(e.getMessage())) {
                 return ResponseEntity
-                        .status(409) // Conflict
-                        .body(Map.of(
-                                "message", "Email already registered. Please login."
-                        ));
+                        .status(409)
+                        .body(Map.of("message", "Email already registered. Please login."));
             }
 
-            throw e; // unexpected business error
+            throw e;
 
         } catch (Exception e) {
             return ResponseEntity
                     .status(500)
-                    .body(Map.of(
-                            "message", "Signup failed. Please try again."
-                    ));
+                    .body(Map.of("message", "Signup failed. Please try again."));
         }
     }
 
-
     /**
-     * ✅ GET CURRENT LOGGED-IN USER PROFILE
-     * - Used by dashboard
-     * - Reads user data from Firestore
+     * ✅ GET CURRENT USER
      */
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(
             @RequestHeader("Authorization") String authorization
     ) throws Exception {
 
-        // Expect header: "Bearer <token>"
         String token = authorization.replace("Bearer ", "");
-
-        // Verify Firebase token
         FirebaseToken decodedToken = firebaseAuthService.verifyToken(token);
         String uid = decodedToken.getUid();
 
-        // Fetch user data from Firestore
         Map<String, Object> userData = firestoreService.getUser(uid);
-
         return ResponseEntity.ok(userData);
     }
 }
