@@ -40,7 +40,7 @@ const Signup = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      navigate("/dashboard");
+      navigate("/login");
     }
   }, []);
 
@@ -127,7 +127,7 @@ const Signup = () => {
         description: "Welcome! Your account has been created successfully.",
       });
 
-      navigate("/dashboard");
+      navigate("/login");
         } catch (error: any) {
           toast({
             title: "Signup failed",
