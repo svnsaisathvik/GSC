@@ -111,7 +111,7 @@ public class LANManager {
     }
     
     // t3
-    public void uploadToFirebase() {
+    public void uploadToFirebase() throws Exception {
         for (Map.Entry<String, String> entry : houseLanMap.entrySet()) {
 
             System.out.println("Uploading bills for House ID: " + entry.getKey());
