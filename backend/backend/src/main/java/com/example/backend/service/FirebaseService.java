@@ -4,6 +4,7 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import org.springframework.stereotype.Service;
+import com.google.cloud.firestore.FieldValue;
 
 import java.util.List;
 
@@ -52,14 +53,14 @@ public class FirebaseService {
             double gridSavings,
             double earnings
     ) {
-        firestore
-                .collection("users")
-                .document(userId)
-                .update(
-                        "energyConsumed", energyConsumed,
-                        "energySold", energySold,
-                        "gridSavings", gridSavings,
-                        "earnings", earnings
-                );
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("energyConsumed", FieldValue.increment(energyConsumed));
+        updates.put("energySold", FieldValue.increment(energySold));
+        updates.put("gridSavings", FieldValue.increment(gridSavings));
+        updates.put("earnings", FieldValue.increment(earnings));
+
+        firestore.collection("users").document(userId).update(updates);
+        DocumentSnapshot verify = firestore.collection("users").document(userId).get().get();
+
     }
 }
