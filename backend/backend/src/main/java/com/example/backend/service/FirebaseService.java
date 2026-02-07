@@ -46,7 +46,7 @@ public class FirebaseService {
     /**
      * ✅ Update billing-related fields after LAN computation
      */
-    public void updateUserBills(
+    public void updateUserBills throws Exception(
             String userId,
             double energyConsumed,
             double energySold,
