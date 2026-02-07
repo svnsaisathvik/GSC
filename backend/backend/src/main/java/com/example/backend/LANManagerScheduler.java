@@ -29,7 +29,7 @@ public class LANManagerScheduler {
 
     // t3: every 5 minutes
     @Scheduled(fixedRate = 60_000)
-    public void upload() {
+    public void upload() throws Exception {
         lanManager.uploadToFirebase();
     }
 }
