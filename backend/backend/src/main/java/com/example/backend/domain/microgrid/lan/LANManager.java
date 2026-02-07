@@ -24,6 +24,64 @@ public class LANManager {
         this.firebaseService = firebaseService;
         initializeMapping();
     }
+    
+    private double rand(double min, double max) {
+        return min + (max - min) * Math.random();
+    }
+
+    private House createHouseByRole(
+        String id,
+        String role,
+        double buyBidPrice,
+        double sellingPrice
+    ) {
+    
+        String normalizedRole = role == null ? "" : role.trim().toUpperCase();
+    
+        double peakSolar;
+        double avgConsumption;
+        double sellThreshold;
+        double costPrice = buyBidPrice;      // use Firebase values
+        double sellPrice = sellingPrice;     // use Firebase values
+    
+        switch (normalizedRole) {
+    
+            case "CONSUMER":
+                peakSolar = 0.0;
+                avgConsumption = rand(1.0, 2.5);
+                sellThreshold = rand(0.2, 0.5);
+                break;
+    
+            case "PRODUCER":
+                peakSolar = rand(2.0, 3.0);
+                avgConsumption = rand(0.1, 0.4);
+                sellThreshold = rand(0.0, 0.2);
+                break;
+    
+            case "PROSUMER":
+                peakSolar = rand(2.0, 2.5);
+                avgConsumption = rand(0.4, 0.5);
+                sellThreshold = 0.2;
+                break;
+    
+            default:
+                // Consumer
+                peakSolar = 0.0;
+                avgConsumption = rand(1.0, 2.5);
+                sellThreshold = rand(0.2, 0.5);
+                break;
+        }
+    
+        return new House(
+                id,
+                peakSolar,
+                avgConsumption,
+                sellThreshold,
+                costPrice,
+                sellPrice
+        );
+    }
+
 
     private void initializeMapping() {
         try {
@@ -42,15 +100,14 @@ public class LANManager {
 
                 LAN lan = lans.computeIfAbsent(lanId, k -> new LAN());
 
-                House house = new House(
+                String role = user.getString("role");
+                
+                House house = createHouseByRole(
                         meterId,
-                        1.0 + (4.0 - 1.0) * Math.random(),
-                        0.2 + (0.7 - 0.2) * Math.random(),
-                        0.15 + (0.25 - 0.15) * Math.random(),
+                        role,
                         buyBidPrice,
                         sellingPrice
                 );
-
 
                 lan.addHouse(house);
                 houseLanMap.put(meterId, lanId);
@@ -157,14 +214,15 @@ public class LANManager {
 
         LAN lan = lans.computeIfAbsent(lanId, k -> new LAN());
 
-        House house = new House(
+        String role = user.getString("role");
+        
+        House house = createHouseByRole(
                 meterId,
-                1.0 + (4.0 - 1.0) * Math.random(),
-                0.2 + (0.7 - 0.2) * Math.random(),
-                0.15 + (0.25 - 0.15) * Math.random(),
+                role,
                 buyBidPrice,
                 sellingPrice
         );
+
 
         lan.addHouse(house);
         houseLanMap.put(meterId, lanId);
