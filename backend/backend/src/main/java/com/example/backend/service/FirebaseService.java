@@ -46,13 +46,13 @@ public class FirebaseService {
     /**
      * ✅ Update billing-related fields after LAN computation
      */
-    public void updateUserBills throws Exception(
+    public void updateUserBills (
             String userId,
             double energyConsumed,
             double energySold,
             double gridSavings,
             double earnings
-    ) {
+    ) throws Exception {
         Map<String, Object> updates = new HashMap<>();
         updates.put("energyConsumed", FieldValue.increment(energyConsumed));
         updates.put("energySold", FieldValue.increment(energySold));
